@@ -1,0 +1,15 @@
+{
+  "$schema-version": "0.0.1",
+  "description": "Adapts device messages into influxdb rows. Runs as an edge module.",
+  "image": {
+    "repository": "tipith/edge_module_influxadapter",
+    "tag": {
+      "version": "0.0.6",
+      "platforms": {
+        "arm32v7": "./Dockerfile.arm32v7"
+      }
+    },
+    "buildOptions": []
+  },
+  "language": "python"
+}

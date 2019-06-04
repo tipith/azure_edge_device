@@ -1,0 +1,15 @@
+{
+  "$schema-version": "0.0.1",
+  "description": "Listens for twin updates and moves a servo. Supports direct method for querying lidar measurement.",
+  "image": {
+    "repository": "tipith/edge_module_lidar",
+    "tag": {
+      "version": "0.0.1",
+      "platforms": {
+        "arm32v7": "./Dockerfile.arm32v7"
+      }
+    },
+    "buildOptions": []
+  },
+  "language": "python"
+}

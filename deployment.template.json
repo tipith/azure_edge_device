@@ -1,0 +1,123 @@
+{
+  "modulesContent": {
+    "$edgeAgent": {
+      "properties.desired": {
+        "schemaVersion": "1.0",
+        "runtime": {
+          "type": "docker",
+          "settings": {
+            "minDockerVersion": "v1.25",
+            "loggingOptions": "",
+            "registryCredentials": {
+              "docker": {
+                "username": "$CONTAINER_REGISTRY_USERNAME_docker",
+                "password": "$CONTAINER_REGISTRY_PASSWORD_docker",
+                "address": "docker.io"
+              }
+            }
+          }
+        },
+        "systemModules": {
+          "edgeAgent": {
+            "type": "docker",
+            "settings": {
+              "image": "mcr.microsoft.com/azureiotedge-agent:1.0",
+              "createOptions": "{}"
+            }
+          },
+          "edgeHub": {
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "mcr.microsoft.com/azureiotedge-hub:1.0",
+              "createOptions": "{\"HostConfig\":{\"PortBindings\":{\"5671/tcp\":[{\"HostPort\":\"5671\"}],\"8883/tcp\":[{\"HostPort\":\"8883\"}],\"443/tcp\":[{\"HostPort\":\"443\"}]}}}"
+            },
+            "env": {
+              "OptimizeForPerformance": {
+                "value": "false"
+              }
+            }
+          }
+        },
+        "modules": {
+          "adapter": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "${MODULES.influxadapter}",
+              "createOptions": "{}"
+            }
+          },
+          "influxdb": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "influxdb:latest",
+              "createOptions": "{}"
+            }
+          },
+          "grafana": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "grafana/grafana:latest",
+              "createOptions": "{\"HostConfig\":{\"PortBindings\":{\"3000/tcp\":[{\"HostPort\":\"3000\"}]}}}"
+            }
+          },
+          "lidar": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "${MODULES.lidar}",
+              "createOptions": "{\"HostConfig\":[{\"PathOnHost\": \"/dev/i2c-1\", \"PathInContainer\": \"/dev/i2c-1\", \"CgroupPermissions\": \"mrw\"}], \"NetworkMode\": \"host\"}"
+            }
+          },
+          "stream_averager": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "${MODULES.stream_averager}",
+              "createOptions": {}
+            }
+          }
+        }
+      }
+    },
+    "$edgeHub": {
+      "properties.desired": {
+        "schemaVersion": "1.0",
+        "routes": {
+          "device2adapter": "FROM /messages/* WHERE NOT IS_DEFINED($connectionModuleId) INTO BrokeredEndpoint(\"/modules/adapter/inputs/input1\")",
+          "device2avg": "FROM /messages/* WHERE NOT IS_DEFINED($connectionModuleId) INTO BrokeredEndpoint(\"/modules/stream_averager/inputs/input1\")",
+          "lidar2cloud": "FROM /messages/modules/lidar/outputs/* INTO $upstream",
+          "adapter2cloud": "FROM /messages/modules/adapter/outputs/* INTO $upstream",
+          "avg2cloud": "FROM /messages/modules/stream_averager/outputs/* INTO $upstream"
+        },
+        "storeAndForwardConfiguration": {
+          "timeToLiveSecs": 300
+        }
+      }
+    },
+    "lidar": {
+      "properties.desired": {
+        "servo_angle": 0
+      }
+    },
+    "stream_averager": {
+      "properties.desired": {
+        "averaging_window_sec": 30
+      }
+    }
+  }
+}
